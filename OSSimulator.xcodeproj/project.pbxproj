@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		275F078C1D8F564300D67354 /* PCBHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 275F078A1D8F564300D67354 /* PCBHandler.cpp */; };
 		27AEEF5D1D6FCCDB00C425B5 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AEEF5C1D6FCCDB00C425B5 /* main.cpp */; };
 		27AEEF6A1D707B9500C425B5 /* Interface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AEEF681D707B9500C425B5 /* Interface.cpp */; };
 /* End PBXBuildFile section */
@@ -25,6 +26,8 @@
 
 /* Begin PBXFileReference section */
 		2711FFCA1D767D0D001361BB /* cmmdbatch.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = cmmdbatch.txt; path = OSSimulator/cmmdbatch.txt; sourceTree = "<group>"; };
+		275F078A1D8F564300D67354 /* PCBHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PCBHandler.cpp; sourceTree = "<group>"; };
+		275F078B1D8F564300D67354 /* PCBHandler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PCBHandler.hpp; sourceTree = "<group>"; };
 		27AEEF591D6FCCDB00C425B5 /* OSSimulator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OSSimulator; sourceTree = BUILT_PRODUCTS_DIR; };
 		27AEEF5C1D6FCCDB00C425B5 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		27AEEF661D6FD55D00C425B5 /* cmmdlist.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = cmmdlist.txt; path = OSSimulator/cmmdlist.txt; sourceTree = "<group>"; };
@@ -67,6 +70,8 @@
 				27AEEF5C1D6FCCDB00C425B5 /* main.cpp */,
 				27AEEF681D707B9500C425B5 /* Interface.cpp */,
 				27AEEF691D707B9500C425B5 /* Interface.hpp */,
+				275F078A1D8F564300D67354 /* PCBHandler.cpp */,
+				275F078B1D8F564300D67354 /* PCBHandler.hpp */,
 			);
 			path = OSSimulator;
 			sourceTree = "<group>";
@@ -127,6 +132,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				275F078C1D8F564300D67354 /* PCBHandler.cpp in Sources */,
 				27AEEF6A1D707B9500C425B5 /* Interface.cpp in Sources */,
 				27AEEF5D1D6FCCDB00C425B5 /* main.cpp in Sources */,
 			);

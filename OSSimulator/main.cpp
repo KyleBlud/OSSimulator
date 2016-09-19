@@ -8,10 +8,13 @@
 
 #include <iostream>
 #include "Interface.hpp"
+#include "PCBHandler.hpp" //Remove
 
 int main(int argc, const char * argv[]) {
     
-    Interface gui;
-        
+    //Interface gui;
+    
+    PCBHandler p;
+    
     return 0;
 }
