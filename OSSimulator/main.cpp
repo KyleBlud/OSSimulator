@@ -7,14 +7,11 @@
 //
 
 #include <iostream>
-#include "Interface.hpp"
-#include "PCBHandler.hpp" //Remove
+#include "CommandHandler.hpp"
 
 int main(int argc, const char * argv[]) {
     
-    //Interface gui;
-    
-    PCBHandler p;
+    CommandHandler ch;
     
     return 0;
 }

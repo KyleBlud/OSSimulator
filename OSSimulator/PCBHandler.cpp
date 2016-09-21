@@ -117,7 +117,7 @@ void PCBHandler::generatePCBs(int amount)
     while (count != amount)
     {
         PCBadded = createPCB(rand() % 10 + 1, rand() % 10 + 1);
-        if (PCBadded != 0)
+        if (PCBadded)
             count++;
     }
 }

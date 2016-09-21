@@ -4,4 +4,3 @@ ls
 cmmdhist
 rncmmd
 exit
-help

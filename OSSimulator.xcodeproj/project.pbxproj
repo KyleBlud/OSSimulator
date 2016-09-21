@@ -7,11 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		272BAFCC1D8F9E75008F26DD /* CommandPrompt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272BAFCA1D8F9E75008F26DD /* CommandPrompt.cpp */; };
 		272BAFCF1D8F9E91008F26DD /* CommandHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272BAFCD1D8F9E91008F26DD /* CommandHandler.cpp */; };
 		275F078C1D8F564300D67354 /* PCBHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 275F078A1D8F564300D67354 /* PCBHandler.cpp */; };
 		27AEEF5D1D6FCCDB00C425B5 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AEEF5C1D6FCCDB00C425B5 /* main.cpp */; };
-		27AEEF6A1D707B9500C425B5 /* Interface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AEEF681D707B9500C425B5 /* Interface.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,8 +26,6 @@
 
 /* Begin PBXFileReference section */
 		2711FFCA1D767D0D001361BB /* cmmdbatch.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = cmmdbatch.txt; path = OSSimulator/cmmdbatch.txt; sourceTree = "<group>"; };
-		272BAFCA1D8F9E75008F26DD /* CommandPrompt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CommandPrompt.cpp; sourceTree = "<group>"; };
-		272BAFCB1D8F9E75008F26DD /* CommandPrompt.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CommandPrompt.hpp; sourceTree = "<group>"; };
 		272BAFCD1D8F9E91008F26DD /* CommandHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CommandHandler.cpp; sourceTree = "<group>"; };
 		272BAFCE1D8F9E91008F26DD /* CommandHandler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CommandHandler.hpp; sourceTree = "<group>"; };
 		275F078A1D8F564300D67354 /* PCBHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PCBHandler.cpp; sourceTree = "<group>"; };
@@ -37,8 +33,6 @@
 		27AEEF591D6FCCDB00C425B5 /* OSSimulator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OSSimulator; sourceTree = BUILT_PRODUCTS_DIR; };
 		27AEEF5C1D6FCCDB00C425B5 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		27AEEF661D6FD55D00C425B5 /* cmmdlist.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = cmmdlist.txt; path = OSSimulator/cmmdlist.txt; sourceTree = "<group>"; };
-		27AEEF681D707B9500C425B5 /* Interface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Interface.cpp; sourceTree = "<group>"; };
-		27AEEF691D707B9500C425B5 /* Interface.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Interface.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,12 +68,8 @@
 			isa = PBXGroup;
 			children = (
 				27AEEF5C1D6FCCDB00C425B5 /* main.cpp */,
-				272BAFCA1D8F9E75008F26DD /* CommandPrompt.cpp */,
-				272BAFCB1D8F9E75008F26DD /* CommandPrompt.hpp */,
 				272BAFCD1D8F9E91008F26DD /* CommandHandler.cpp */,
 				272BAFCE1D8F9E91008F26DD /* CommandHandler.hpp */,
-				27AEEF681D707B9500C425B5 /* Interface.cpp */,
-				27AEEF691D707B9500C425B5 /* Interface.hpp */,
 				275F078A1D8F564300D67354 /* PCBHandler.cpp */,
 				275F078B1D8F564300D67354 /* PCBHandler.hpp */,
 			);
@@ -143,10 +133,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				275F078C1D8F564300D67354 /* PCBHandler.cpp in Sources */,
-				27AEEF6A1D707B9500C425B5 /* Interface.cpp in Sources */,
 				272BAFCF1D8F9E91008F26DD /* CommandHandler.cpp in Sources */,
 				27AEEF5D1D6FCCDB00C425B5 /* main.cpp in Sources */,
-				272BAFCC1D8F9E75008F26DD /* CommandPrompt.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
