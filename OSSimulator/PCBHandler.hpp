@@ -13,8 +13,11 @@
 #include <cstdlib>
 #include <ctime>
 #include <deque>
+#include <vector>
+#include <algorithm>
 
 using std::deque;
+using std::string;
 using std::cout;
 using std::endl;
 
@@ -44,6 +47,7 @@ public:
     void showAllPCBs();
     void showReady();
     void showBlocked();
+    void showQueue(deque<PCB> q, string qName);
     void generatePCBs(int amount);
     int find(int PID, deque<PCB> q);
 };

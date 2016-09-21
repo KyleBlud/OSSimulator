@@ -69,7 +69,7 @@ int CommandHandler::addValidCommands()
 
 int CommandHandler::executeCommand(string command)
 {
-    currCommand = command;
+    setCurrCommand(command);
     int commandType = defineCommandType();
     
     switch (commandType)
@@ -82,8 +82,9 @@ int CommandHandler::executeCommand(string command)
         case EXIT:      if (executeExit()) return EXIT; break;
         case BATCH:     runBatchFile(); break;
         case HELP:      printHelp(); break;
+        case PCB:       handlePCB(); break;
         default:
-            invalidCommandMessage(currCommand);
+            invalidCommandMessage(getCurrCommand());
             return -1;
     }
     return 0;
@@ -126,27 +127,21 @@ void CommandHandler::renameCommand()
     int commandType;
 
     if (!nextCommand())
-    {
-        cout << "Incomplete command" << endl;
         return;
-    }
     
-    oldCommand = currCommand;
+    oldCommand = getCurrCommand();
     commandType = defineCommandType();
     
     if (commandType == -1)
     {
-        invalidCommandMessage(currCommand);
+        invalidCommandMessage(getCurrCommand());
         return;
     }
     else if (!nextCommand())
-    {
-        cout << "Incomplete command" << endl;
         return;
-    }
     else
     {
-        newCommand = currCommand;
+        newCommand = getCurrCommand();
         validCommands[commandType].command = newCommand;
         cout << "Successfully changed \"" << oldCommand
         << "\" to \"" << newCommand << "\"" << endl;
@@ -192,12 +187,9 @@ void CommandHandler::printHelp()
 void CommandHandler::runBatchFile()
 {
     if (!nextCommand())
-    {
-        cout << "Incomplete command" << endl;
         return;
-    }
     
-    string fileName = currCommand;
+    string fileName = getCurrCommand();
     string line;
     ifstream myFile(fileName);
     
@@ -212,13 +204,89 @@ void CommandHandler::runBatchFile()
         cout << "File does not exist." << endl;
 }
 
+void CommandHandler::handlePCB()
+{
+    if (!nextCommand())
+        return;
+    
+    int PID;
+    
+    if (getCurrCommand() == "show")
+    {
+        if (!nextCommand())
+            return;
+        if (getCurrCommand() == "ready")
+            p.showReady();
+        else if (getCurrCommand() == "blocked")
+            p.showBlocked();
+        else if (getCurrCommand() == "all")
+            p.showAllPCBs();
+        else
+            invalidCommandMessage(getCurrCommand());
+    }
+    else if (getCurrCommand() == "create")
+    {
+        if (!nextCommand())
+            return;
+        PID = std::stoi(getCurrCommand());
+        if (!nextCommand())
+            return;
+        int memory = std::stoi(getCurrCommand());
+        p.createPCB(PID, memory);
+    }
+    else if (getCurrCommand() == "delete")
+    {
+        if (!nextCommand())
+            return;
+        PID = std::stoi(getCurrCommand());
+        p.deletePCB(PID);
+    }
+    else if (getCurrCommand() == "block")
+    {
+        if (!nextCommand())
+            return;
+        PID = std::stoi(getCurrCommand());
+        p.blockPCB(PID);
+    }
+    else if(getCurrCommand() == "unblock")
+    {
+        if (!nextCommand())
+            return;
+        PID = std::stoi(getCurrCommand());
+        p.unblockPCB(PID);
+    }
+    else if (getCurrCommand() == "generate")
+    {
+        if (!nextCommand())
+            return;
+        int amount = std::stoi(getCurrCommand());
+        p.generatePCBs(amount);
+    }
+}
+
+void CommandHandler::setCurrCommand(string s)
+{
+    currCommand = s;
+}
+
+string CommandHandler::getCurrCommand()
+{
+    return currCommand;
+}
+
 int CommandHandler::nextCommand()
 {
     currPos++;
     if (currPos >= userCommands.size())
+    {
+        cout << "Incomplete command" << endl;
         return 0;
-    currCommand = userCommands.at(currPos);
-    return 1;
+    }
+    else
+    {
+        setCurrCommand(userCommands.at(currPos));
+        return 1;
+    }
 }
 
 void CommandHandler::resetPosition()
@@ -243,7 +311,7 @@ int CommandHandler::defineCommandType()
 {
     for (int i = 0; i < validCommands.size(); i++)
     {
-        if (currCommand == validCommands[i].command)
+        if (getCurrCommand() == validCommands[i].command)
             return i;
     }
     return -1;

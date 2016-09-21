@@ -15,6 +15,7 @@
 #include <vector>
 #include <ctime>
 #include <dirent.h>
+#include "PCBHandler.hpp"
 
 using std::cout;
 using std::endl;
@@ -38,7 +39,8 @@ enum Commands
     RNCMMD,
     EXIT,
     BATCH,
-    HELP
+    HELP,
+    PCB
 };
 
 class CommandHandler
@@ -48,11 +50,14 @@ private:
     vector<string> userCommands;
     vector<string> commandHistory;
     string currCommand;
+    PCBHandler p;
     int currPos;
     
     void prompt();
     int addValidCommands();
     int executeCommand(string command);
+    void setCurrCommand(string s);
+    string getCurrCommand();
     int nextCommand();
     void resetPosition();
     vector<string> tokenizer(string s, char delim);
@@ -64,12 +69,12 @@ private:
     bool executeExit();
     void printHelp();
     void runBatchFile();
+    void handlePCB();
     int defineCommandType();
     void invalidCommandMessage(string command);
     
 public:
     CommandHandler();
-    CommandHandler(vector<string> inputTokens);
 };
 
 #endif /* CommandHandler_hpp */
