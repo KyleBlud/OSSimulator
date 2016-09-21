@@ -1,6 +1,9 @@
-ver
-date
-ls
-cmmdhist
-rncmmd
-exit
+ver,displays the software version number
+date,displays the date
+ls,prints a list of all the files in the current directory
+cmmdhist,displays a history of all the commands you have used
+rncmmd,renames a command
+exit,exits the simulation
+batch,run commands from a batch file or script
+help,displays help information for each command
+pcb,do various operations with pcbs
