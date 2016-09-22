@@ -30,6 +30,12 @@ struct PCB
     int memoryNeeded;
 };
 
+struct IOEvent
+{
+    int eventType;
+    int timeCycleStamp;
+};
+
 class PCBHandler
 {
 private:
@@ -49,6 +55,7 @@ public:
     void showBlocked();
     void showQueue(deque<PCB> q, string qName);
     void generatePCBs(int amount);
+    void execute();
     int find(int PID, deque<PCB> q);
 };
 

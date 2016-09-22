@@ -210,11 +210,13 @@ void CommandHandler::handlePCB()
         return;
     
     int PID;
+    int success = 0;
     
     if (getCurrCommand() == "show")
     {
         if (!nextCommand())
             return;
+        success = -1;
         if (getCurrCommand() == "ready")
             p.showReady();
         else if (getCurrCommand() == "blocked")
@@ -232,28 +234,28 @@ void CommandHandler::handlePCB()
         if (!nextCommand())
             return;
         int memory = std::stoi(getCurrCommand());
-        p.createPCB(PID, memory);
+        success = p.createPCB(PID, memory);
     }
     else if (getCurrCommand() == "delete")
     {
         if (!nextCommand())
             return;
         PID = std::stoi(getCurrCommand());
-        p.deletePCB(PID);
+        success = p.deletePCB(PID);
     }
     else if (getCurrCommand() == "block")
     {
         if (!nextCommand())
             return;
         PID = std::stoi(getCurrCommand());
-        p.blockPCB(PID);
+        success = p.blockPCB(PID);
     }
     else if(getCurrCommand() == "unblock")
     {
         if (!nextCommand())
             return;
         PID = std::stoi(getCurrCommand());
-        p.unblockPCB(PID);
+        success = p.unblockPCB(PID);
     }
     else if (getCurrCommand() == "generate")
     {
@@ -262,6 +264,15 @@ void CommandHandler::handlePCB()
         int amount = std::stoi(getCurrCommand());
         p.generatePCBs(amount);
     }
+    else if (getCurrCommand() == "execute")
+    {
+        
+    }
+    
+    if (success == 1)
+        cout << "Carried out command successfully" << endl;
+    else if (success == 0)
+        cout << "Failed to carry out command." << endl;
 }
 
 void CommandHandler::setCurrCommand(string s)
