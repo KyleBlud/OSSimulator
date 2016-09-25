@@ -119,7 +119,7 @@ void CommandHandler::printFilesInDirectory()
 
 /*
  ~ $ <rename command> <old command name> <new command name>
- */
+*/
 void CommandHandler::renameCommand()
 {
     string oldCommand;
@@ -210,19 +210,20 @@ void CommandHandler::handlePCB()
         return;
     
     int PID;
-    int success = 0;
+    int success = -1;
     
     if (getCurrCommand() == "show")
     {
         if (!nextCommand())
             return;
-        success = -1;
         if (getCurrCommand() == "ready")
             p.showReady();
         else if (getCurrCommand() == "blocked")
             p.showBlocked();
         else if (getCurrCommand() == "all")
             p.showAllPCBs();
+        else if (isInteger(getCurrCommand()))
+            p.showPCB(std::stoi(getCurrCommand()));
         else
             invalidCommandMessage(getCurrCommand());
     }
@@ -266,7 +267,7 @@ void CommandHandler::handlePCB()
     }
     else if (getCurrCommand() == "execute")
     {
-        
+        p.execute();
     }
     
     if (success == 1)
@@ -331,4 +332,9 @@ int CommandHandler::defineCommandType()
 void CommandHandler::invalidCommandMessage(string command)
 {
     cout << "Could not recognize \"" << command << "\"" << endl;
+}
+
+bool CommandHandler::isInteger(string s)
+{
+    return (s.find_first_not_of("0123456789") == string::npos);
 }

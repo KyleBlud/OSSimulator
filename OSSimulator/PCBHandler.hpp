@@ -15,11 +15,13 @@
 #include <deque>
 #include <vector>
 #include <algorithm>
+#include <fstream>
 
 using std::deque;
 using std::string;
 using std::cout;
 using std::endl;
+using std::ofstream;
 
 struct PCB
 {
@@ -28,6 +30,8 @@ struct PCB
     int IORequestTerm;
     int waitingTerm;
     int memoryNeeded;
+    int timeEnteredBlockedQ;
+    int eventTypeRequested;
 };
 
 struct IOEvent
@@ -36,12 +40,19 @@ struct IOEvent
     int timeCycleStamp;
 };
 
+enum IOEventType
+{
+    USER = 4,
+    HARD_DRIVE = 9
+};
+
 class PCBHandler
 {
 private:
+    const int MAX_MEMORY = 500;
     deque<PCB> readyQ;
     deque<PCB> blockedQ;
-    deque<PCB> IOEventQ;
+    deque<IOEvent> IOEventQ;
     PCB CPU;
     
 public:
@@ -49,13 +60,17 @@ public:
     int deletePCB(int PID);
     int blockPCB(int PID);
     int unblockPCB(int PID);
-    int showPCBs(int PID);
+    int showPCB(int PID);
     void showAllPCBs();
     void showReady();
     void showBlocked();
     void showQueue(deque<PCB> q, string qName);
     void generatePCBs(int amount);
     void execute();
+    void writeQueue(deque<PCB> q, string qName, ofstream &trace);
+    void clearCPU();
+    void addEventToQ(int eventType, int timeCycleStamp);
+    void updateAllWaitingTerms(int waitingTerm);
     int find(int PID, deque<PCB> q);
 };
 

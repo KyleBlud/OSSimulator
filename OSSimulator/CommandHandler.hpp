@@ -72,6 +72,7 @@ private:
     void handlePCB();
     int defineCommandType();
     void invalidCommandMessage(string command);
+    bool isInteger(string s);
     
 public:
     CommandHandler();
