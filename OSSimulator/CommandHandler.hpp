@@ -43,6 +43,13 @@ enum Commands
     PCB
 };
 
+enum ErrorType
+{
+    INVALID = 1,
+    INCOMPLETE,
+    EXPECTED_INT
+};
+
 class CommandHandler
 {
 private:
@@ -71,7 +78,7 @@ private:
     void runBatchFile();
     void handlePCB();
     int defineCommandType();
-    void invalidCommandMessage(string command);
+    void errorMessage(int errorType, string command);
     bool isInteger(string s);
     
 public:

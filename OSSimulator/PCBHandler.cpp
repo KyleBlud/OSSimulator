@@ -8,6 +8,11 @@
 
 #include "PCBHandler.hpp"
 
+PCBHandler::PCBHandler()
+{
+    srand(time(NULL));
+}
+
 int PCBHandler::createPCB(int PID, int memoryNeeded)
 {
     if ((find(PID, readyQ) != -1) || (find(PID, blockedQ) != -1))
@@ -15,14 +20,19 @@ int PCBHandler::createPCB(int PID, int memoryNeeded)
     if (memoryNeeded > MAX_MEMORY)
         return 0;
     
+    int typeOfPCB = (rand() % 3) + 1;
+    
     PCB newPCB;
     newPCB.PID = PID;
     newPCB.CPUUsageTerm = 0;
     newPCB.IORequestTerm = 0;
     newPCB.waitingTerm = 0;
     newPCB.memoryNeeded = memoryNeeded;
-    newPCB.timeEnteredBlockedQ = 0;
-    newPCB.eventTypeRequested = 0;
+    newPCB.blockedTimeStamp = 0;
+    newPCB.IORequestType = 0;
+    newPCB.interactivity = typeOfPCB;
+    newPCB.reference = 0;
+    newPCB.priority = 0;
     
     readyQ.push_back(newPCB);
     
@@ -57,6 +67,7 @@ int PCBHandler::blockPCB(int PID)
     if (index == -1)
         return 0;
     
+    readyQ[index].IORequestType = USER;
     blockedQ.push_back(readyQ[index]);
     readyQ.erase(readyQ.begin() + index);
     
@@ -88,16 +99,8 @@ int PCBHandler::showPCB(int PID)
         pcb = blockedQ[index2];
     else if (PID == CPU.PID)
         pcb = CPU;
-
-    cout <<
-    pcb.PID << "\t" <<
-    pcb.CPUUsageTerm << "\t" <<
-    pcb.IORequestTerm << "\t" <<
-    pcb.waitingTerm << "\t" <<
-    pcb.memoryNeeded << "\t" <<
-    pcb.eventTypeRequested << "\t" <<
-    pcb.timeEnteredBlockedQ << "\t"
-    << endl;
+    
+    printPCBContent(pcb);
     
     return 0;
 }
@@ -121,127 +124,145 @@ void PCBHandler::showBlocked()
 void PCBHandler::showQueue(deque<PCB> q, string qName)
 {
     cout << qName << " Queue" << endl;
+    printPCBTableHeader();
     for (int i = 0; i < q.size(); i++)
     {
-        cout <<
-        q[i].PID << "\t" <<
-        q[i].CPUUsageTerm << "\t" <<
-        q[i].IORequestTerm << "\t" <<
-        q[i].waitingTerm << "\t" <<
-        q[i].memoryNeeded << "\t" <<
-        q[i].eventTypeRequested << "\t" <<
-        q[i].timeEnteredBlockedQ << "\t"
-        << endl;
+        printPCBContent(q[i]);
     }
+    std::setw(0);
+}
+
+void PCBHandler::printPCBContent(PCB pcb)
+{
+    string PCBType;
+    if (pcb.interactivity == INTERACTIVE)
+        PCBType = "Inter.";
+    if (pcb.interactivity == CPU_BOUND)
+        PCBType = "Bound";
+    if (pcb.interactivity == NORMAL)
+        PCBType = "Normal";
+    
+    cout <<
+    pcb.PID << std::setw(SPACE_PADDING) <<
+    pcb.CPUUsageTerm << std::setw(SPACE_PADDING) <<
+    pcb.IORequestTerm << std::setw(SPACE_PADDING) <<
+    pcb.waitingTerm << std::setw(SPACE_PADDING) <<
+    pcb.memoryNeeded << std::setw(SPACE_PADDING) <<
+    PCBType
+    << endl;
+}
+
+void PCBHandler::printPCBTableHeader()
+{
+    cout <<
+    "PID" << std::setw(SPACE_PADDING) <<
+    "CPU_T" << std::setw(SPACE_PADDING) <<
+    "IO_R_T" << std::setw(SPACE_PADDING) <<
+    "W_T" << std::setw(SPACE_PADDING) <<
+    "M_N" << std::setw(SPACE_PADDING) <<
+    "PCB_Type"
+    << endl;
 }
 
 void PCBHandler::generatePCBs(int amount)
 {
-    srand(time(NULL));
-    
     int count = 0;
     int PCBadded = 0;
     
     while (count != amount)
     {
-        PCBadded = createPCB(rand() % 999 + 1, rand() % MAX_MEMORY + 1);
+        PCBadded = createPCB((rand() % 899) + 100, rand() % MAX_MEMORY + 1);
         if (PCBadded)
             count++;
     }
 }
 
-void PCBHandler::execute()
+void PCBHandler::execute(bool MLFQ, int highestPriority,
+                         bool roundRobin, int timeSlice)
 {
-    srand(time(NULL));
+    unsigned long int totalPCBs = readyQ.size() + blockedQ.size();
+    int turnaroundTime = 0;
+    int responseTime = 0;
+    double av_turnaround = 0;
+    double av_response = 0;
+    int currTime = 0;
+    int totalTime = 0;
+    int CPUUsageTerm = 0;
+    int boostTime = 1000;
+    bool OSControlOfCPU;
+    bool processCompleted;
+    if (MLFQ)
+    {
+        this->highestPriority = highestPriority;
+        boostPriorityLevels();
+    }
     
-    int processingTime = 0;
-    int timecycle = 0;
-    int randomEvent = 0;
-    int performAction = 0;
-    bool CPUOccupied;
-    
+    printPCBTableHeader();
     while (!readyQ.empty() || !blockedQ.empty())
     {
-        processingTime += rand() % 10001; // 0 to 10,000
-        clearCPU();
-        CPUOccupied = false;
+        totalTime += ((roundRobin) ? timeSlice : (rand() % 10001) + 1);
+        OSControlOfCPU = true;
+        if (MLFQ && totalTime >= boostTime)
+            boostPriorityLevels();
         if (!readyQ.empty())
         {
-            CPU = readyQ.front();
-            CPUOccupied = true;
-            readyQ.pop_front();
-            CPU.CPUUsageTerm = processingTime;
-            updateAllWaitingTerms(processingTime);
-        }
-        while (timecycle != processingTime)
-        {
-            if (timecycle % 10 == 0)
+            CPUUsageTerm = (totalTime - currTime) + CONTEXT_SWITCH_COST;
+            contextSwitch(MLFQ, CPUUsageTerm);
+            totalTime += CONTEXT_SWITCH_COST;
+            if (CPU.reference == 0)
             {
-                randomEvent = rand() % 11; // 0 to 10
-                if (randomEvent == USER)
-                    addEventToQ(USER, timecycle);
-                else if (randomEvent == HARD_DRIVE)
-                    addEventToQ(HARD_DRIVE, timecycle);
+                responseTime += totalTime;
+                CPU.reference = 1;
             }
-            timecycle++;
+            OSControlOfCPU = false;
         }
-        performAction = rand() % 4; // 0 to 3
-        if (performAction == 0)
+        while (currTime != totalTime)
         {
-            if (CPUOccupied)
-                showPCB(CPU.PID);
+            detectIOEvents(currTime);
+            currTime++;
         }
-        else if (performAction == 1)
+        if (!OSControlOfCPU)
         {
-            if (CPUOccupied)
-                readyQ.push_back(CPU);
-        }
-        else if (performAction == 2)
-        {
-            CPU.timeEnteredBlockedQ = timecycle;
-            CPU.eventTypeRequested = USER;
-            if (CPUOccupied)
-                blockedQ.push_back(CPU);
-        }
-        else if (performAction == 3)
-        {
-            CPU.timeEnteredBlockedQ = timecycle;
-            CPU.eventTypeRequested = HARD_DRIVE;
-            if (CPUOccupied)
-                blockedQ.push_back(CPU);
+            processCompleted = scheduler(MLFQ, totalTime);
+            if (processCompleted)
+                turnaroundTime += totalTime;
         }
         if (!blockedQ.empty())
         {
-            for (int i = 0; i < IOEventQ.size(); i++)
-            {
-                if (blockedQ[0].timeEnteredBlockedQ > IOEventQ[i].timeCycleStamp)
-                {
-                    IOEventQ.pop_front();
-                    i--;
-                }
-            }
+            cleanIOEventQ();
+            findIOEventForBlockedPCB(totalTime);
         }
-        for (int i = 0; i < IOEventQ.size(); i++)
-        {
-            for (int j = 0; j < blockedQ.size(); j++)
-            {
-                if (blockedQ[j].timeEnteredBlockedQ <= IOEventQ[i].timeCycleStamp)
-                {
-                    if (blockedQ[j].eventTypeRequested == IOEventQ[i].eventType)
-                        unblockPCB(blockedQ[j].PID);
-                        break;
-                }
-            }
-        }
+        clearCPU();
     }
+    
+    av_turnaround = turnaroundTime / totalPCBs;
+    av_response = responseTime / totalPCBs;
+    
+    cout << "Average turnaround time: " << av_turnaround << endl;
+    cout << "Average response time: " << av_response << endl;
 }
 
-void PCBHandler::addEventToQ(int eventType, int timecycle)
+void PCBHandler::executeAllPolicies(int timeSlice, int priorityLevels)
 {
-    IOEvent event;
-    event.eventType = eventType;
-    event.timeCycleStamp = timecycle;
-    IOEventQ.push_back(event);
+    deque<PCB> temp_ready = readyQ;
+    deque<PCB> temp_blocked = blockedQ;
+    
+    cout << "Normal:" << endl;
+    execute(false, 0, false, 0);
+    
+    readyQ = temp_ready;
+    blockedQ = temp_blocked;
+    IOEventQ.clear();
+    
+    cout << "\nRound Robin:" << endl;
+    execute(false, 0, true, timeSlice);
+    
+    readyQ = temp_ready;
+    blockedQ = temp_blocked;
+    IOEventQ.clear();
+    
+    cout << "\nMLFQ:" << endl;
+    execute(true, priorityLevels, true, 100);
 }
 
 void PCBHandler::clearCPU()
@@ -251,16 +272,179 @@ void PCBHandler::clearCPU()
     CPU.IORequestTerm = 0;
     CPU.waitingTerm = 0;
     CPU.memoryNeeded = 0;
-    CPU.eventTypeRequested = 0;
-    CPU.timeEnteredBlockedQ = 0;
+    CPU.blockedTimeStamp = 0;
+    CPU.IORequestType = 0;
+    CPU.interactivity = 0;
+    CPU.reference = 0;
+    CPU.priority = 0;
+}
+
+void PCBHandler::boostPriorityLevels()
+{
+    for (int i = 0; i < readyQ.size(); i++)
+        readyQ[i].priority = highestPriority;
+    for (int i = 0; i < blockedQ.size(); i++)
+        blockedQ[i].priority = highestPriority;
+}
+
+void PCBHandler::contextSwitch(bool MLFQ, int timeInCPU)
+{
+    if (MLFQ)
+        CPU = findPCBWithHighestPriority();
+    else
+    {
+        CPU = readyQ.front();
+        readyQ.pop_front();
+    }
+    CPU.CPUUsageTerm += timeInCPU;
+    updateAllWaitingTerms(timeInCPU);
+}
+
+PCB PCBHandler::findPCBWithHighestPriority()
+{
+    int index = 0;
+    int currHighestPriority = 0;
+    PCB winner;
+    for (int i = 0; i < readyQ.size(); i++)
+    {
+        if (currHighestPriority < readyQ[i].priority)
+        {
+            currHighestPriority = readyQ[i].priority;
+            index = i;
+        }
+    }
+    winner = readyQ.at(index);
+    readyQ.erase(readyQ.begin() + index);
+    
+    return winner;
 }
 
 void PCBHandler::updateAllWaitingTerms(int waitingTerm)
 {
     for (int i = 0; i < readyQ.size(); i++)
-        readyQ[i].waitingTerm = waitingTerm;
+        readyQ[i].waitingTerm += waitingTerm;
     for (int i = 0; i < blockedQ.size(); i++)
-        blockedQ[i].waitingTerm = waitingTerm;
+        blockedQ[i].waitingTerm += waitingTerm;
+}
+
+void PCBHandler::addEventToQ(int eventType, int timecycle)
+{
+    IOEvent event;
+    event.eventType = eventType;
+    event.timeStamp = timecycle;
+    IOEventQ.push_back(event);
+}
+
+void PCBHandler::detectIOEvents(int currTime)
+{
+    int randEvent;
+    if (currTime % 10 == 0)
+    {
+        randEvent = rand() % 11; // 0 to 10
+        if (randEvent == USER)
+            addEventToQ(USER, currTime);
+        else if (randEvent == HARD_DRIVE)
+            addEventToQ(HARD_DRIVE, currTime);
+    }
+}
+
+bool PCBHandler::scheduler(bool MLFQ, int totalTime)
+{
+    int randAction = (rand() % 100) + 1;
+    int firstBound = 0;
+    int secondBound = 0;
+    int thirdBound = 0;
+    
+    if (CPU.interactivity == INTERACTIVE)
+    {
+        firstBound = 8;
+        secondBound = 16;
+        thirdBound = 91;
+    }
+    else if (CPU.interactivity == CPU_BOUND)
+    {
+        firstBound = 8;
+        secondBound = 83;
+        thirdBound = 91;
+    }
+    else if (CPU.interactivity == NORMAL)
+    {
+        firstBound = 25;
+        secondBound = 50;
+        thirdBound = 75;
+    }
+    
+    if (randAction > 0 && randAction <= firstBound)
+    {
+        showPCB(CPU.PID);
+        return true;
+    }
+    else if (randAction > firstBound && randAction <= secondBound)
+    {
+        if (MLFQ)
+        {
+            if (CPU.priority != 0)
+                CPU.priority -= 1;
+        }
+        readyQ.push_back(CPU);
+    }
+    else if (randAction > secondBound && randAction <= thirdBound)
+    {
+        CPU.blockedTimeStamp = totalTime;
+        CPU.IORequestType = USER;
+        if (MLFQ)
+        {
+            if (CPU.priority != 0)
+                CPU.priority -= 1;
+        }
+        blockedQ.push_back(CPU);
+    }
+    else if (randAction > thirdBound && randAction <= 100)
+    {
+        CPU.blockedTimeStamp = totalTime;
+        CPU.IORequestType = HARD_DRIVE;
+        if (MLFQ)
+        {
+            if (CPU.priority != 0)
+                CPU.priority -= 1;
+        }
+        blockedQ.push_back(CPU);
+    }
+    return false;
+}
+
+void PCBHandler::cleanIOEventQ()
+{
+    for (int i = 0; i < IOEventQ.size(); i++)
+    {
+        if (IOEventQ[i].timeStamp < blockedQ[0].blockedTimeStamp)
+        {
+            IOEventQ.pop_front();
+            i--;
+        }
+        else break;
+    }
+}
+
+void PCBHandler::findIOEventForBlockedPCB(int totalTime)
+{
+    for (int i = 0; i < blockedQ.size(); i++)
+    {
+        for (int j = 0; j < IOEventQ.size(); j++)
+        {
+            if (blockedQ[i].blockedTimeStamp <= IOEventQ[j].timeStamp)
+            {
+                if (blockedQ[i].IORequestType == IOEventQ[j].eventType)
+                {
+                    blockedQ[i].IORequestTerm =
+                    totalTime - blockedQ[i].blockedTimeStamp;
+                    unblockPCB(blockedQ[i].PID);
+                    i--;
+                    break;
+                }
+            }
+        }
+    }
 }
 
 int PCBHandler::find(int PID, deque<PCB> q)

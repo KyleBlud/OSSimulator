@@ -84,7 +84,7 @@ int CommandHandler::executeCommand(string command)
         case HELP:      printHelp(); break;
         case PCB:       handlePCB(); break;
         default:
-            invalidCommandMessage(getCurrCommand());
+            errorMessage(INVALID, getCurrCommand());
             return -1;
     }
     return 0;
@@ -126,19 +126,17 @@ void CommandHandler::renameCommand()
     string newCommand;
     int commandType;
 
-    if (!nextCommand())
-        return;
+    if (!nextCommand()) { errorMessage(INCOMPLETE, ""); return; }
     
     oldCommand = getCurrCommand();
     commandType = defineCommandType();
     
     if (commandType == -1)
     {
-        invalidCommandMessage(getCurrCommand());
+        errorMessage(INVALID, getCurrCommand());
         return;
     }
-    else if (!nextCommand())
-        return;
+    else if (!nextCommand()) { errorMessage(INCOMPLETE, ""); return; }
     else
     {
         newCommand = getCurrCommand();
@@ -168,7 +166,7 @@ bool CommandHandler::executeExit()
     if (input == "N")
         return false;
     else
-        invalidCommandMessage(input);
+        errorMessage(INVALID, input);
     return false;
 }
 
@@ -186,8 +184,7 @@ void CommandHandler::printHelp()
 }
 void CommandHandler::runBatchFile()
 {
-    if (!nextCommand())
-        return;
+    if (!nextCommand()) { errorMessage(INCOMPLETE, ""); return; }
     
     string fileName = getCurrCommand();
     string line;
@@ -204,10 +201,10 @@ void CommandHandler::runBatchFile()
         cout << "File does not exist." << endl;
 }
 
+/* currently working on reducing this function */
 void CommandHandler::handlePCB()
 {
-    if (!nextCommand())
-        return;
+    if (!nextCommand()) { errorMessage(INCOMPLETE, ""); return; }
     
     int PID;
     int success = -1;
@@ -215,7 +212,7 @@ void CommandHandler::handlePCB()
     if (getCurrCommand() == "show")
     {
         if (!nextCommand())
-            return;
+        { errorMessage(INCOMPLETE, ""); return; }
         if (getCurrCommand() == "ready")
             p.showReady();
         else if (getCurrCommand() == "blocked")
@@ -225,50 +222,98 @@ void CommandHandler::handlePCB()
         else if (isInteger(getCurrCommand()))
             p.showPCB(std::stoi(getCurrCommand()));
         else
-            invalidCommandMessage(getCurrCommand());
+            errorMessage(INVALID, getCurrCommand());
     }
     else if (getCurrCommand() == "create")
     {
         if (!nextCommand())
-            return;
+        { errorMessage(INCOMPLETE, ""); return; }
+        if (!isInteger(getCurrCommand()))
+        { errorMessage(EXPECTED_INT, ""); return; }
         PID = std::stoi(getCurrCommand());
         if (!nextCommand())
-            return;
+        { errorMessage(INCOMPLETE, ""); return; }
+        if (!isInteger(getCurrCommand()))
+        { errorMessage(EXPECTED_INT, ""); return; }
         int memory = std::stoi(getCurrCommand());
         success = p.createPCB(PID, memory);
     }
     else if (getCurrCommand() == "delete")
     {
         if (!nextCommand())
-            return;
+        { errorMessage(INCOMPLETE, ""); return; }
+        if (!isInteger(getCurrCommand()))
+        { errorMessage(EXPECTED_INT, ""); return; }
         PID = std::stoi(getCurrCommand());
         success = p.deletePCB(PID);
     }
     else if (getCurrCommand() == "block")
     {
         if (!nextCommand())
-            return;
+        { errorMessage(INCOMPLETE, ""); return; }
+        if (!isInteger(getCurrCommand()))
+        { errorMessage(EXPECTED_INT, ""); return; }
         PID = std::stoi(getCurrCommand());
         success = p.blockPCB(PID);
     }
     else if(getCurrCommand() == "unblock")
     {
         if (!nextCommand())
-            return;
+        { errorMessage(INCOMPLETE, ""); return; }
+        if (!isInteger(getCurrCommand()))
+        { errorMessage(EXPECTED_INT, ""); return; }
         PID = std::stoi(getCurrCommand());
         success = p.unblockPCB(PID);
     }
     else if (getCurrCommand() == "generate")
     {
         if (!nextCommand())
-            return;
+        { errorMessage(INCOMPLETE, ""); return; }
+        if (!isInteger(getCurrCommand()))
+        { errorMessage(EXPECTED_INT, ""); return; }
         int amount = std::stoi(getCurrCommand());
         p.generatePCBs(amount);
     }
     else if (getCurrCommand() == "execute")
     {
-        p.execute();
+        if (!nextCommand())
+        { p.execute(false, 0, false, 0); return; }
+        
+        if (getCurrCommand() == "rr")
+        {
+            if (!nextCommand())
+            { errorMessage(INCOMPLETE, ""); return; }
+            if (!isInteger(getCurrCommand()))
+            { errorMessage(EXPECTED_INT, ""); return; }
+            else
+                p.execute(false, 0, true, std::stoi(getCurrCommand()));
+        }
+        else if (getCurrCommand() == "mlfq")
+        {
+            if (!nextCommand())
+            { errorMessage(INCOMPLETE, ""); return; }
+            if (!isInteger(getCurrCommand()))
+            { errorMessage(EXPECTED_INT, ""); return; }
+            else
+                p.execute(true, std::stoi(getCurrCommand()), true, 100);
+        }
+        else if (getCurrCommand() == "all")
+        {
+            if (!nextCommand())
+            { errorMessage(INCOMPLETE, ""); return; }
+            if (!isInteger(getCurrCommand()))
+            { errorMessage(EXPECTED_INT, ""); return; }
+            int timeSlice = std::stoi(getCurrCommand());
+            if (!nextCommand())
+            { errorMessage(INCOMPLETE, ""); return; }
+            if (!isInteger(getCurrCommand()))
+            { errorMessage(EXPECTED_INT, ""); return; }
+            int priorityLevels = std::stoi(getCurrCommand());
+            p.executeAllPolicies(timeSlice, priorityLevels);
+        }
     }
+    else
+        errorMessage(INVALID, getCurrCommand());
     
     if (success == 1)
         cout << "Carried out command successfully" << endl;
@@ -290,10 +335,7 @@ int CommandHandler::nextCommand()
 {
     currPos++;
     if (currPos >= userCommands.size())
-    {
-        cout << "Incomplete command" << endl;
         return 0;
-    }
     else
     {
         setCurrCommand(userCommands.at(currPos));
@@ -329,9 +371,16 @@ int CommandHandler::defineCommandType()
     return -1;
 }
 
-void CommandHandler::invalidCommandMessage(string command)
+void CommandHandler::errorMessage(int errorType, string command)
 {
-    cout << "Could not recognize \"" << command << "\"" << endl;
+    if (errorType == INVALID)
+        cout << "Invalid. Could not recognize \"" << command << "\"" << endl;
+    else if (errorType == INCOMPLETE)
+        cout << "Incomplete command." << endl;
+    else if (errorType == EXPECTED_INT)
+    {
+        cout << "Invalid command. Expected an integer." << endl;
+    }
 }
 
 bool CommandHandler::isInteger(string s)

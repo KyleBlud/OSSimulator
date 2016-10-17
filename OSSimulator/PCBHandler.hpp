@@ -10,6 +10,7 @@
 #define PCBHandler_hpp
 
 #include <iostream>
+#include <iomanip>
 #include <cstdlib>
 #include <ctime>
 #include <deque>
@@ -30,14 +31,17 @@ struct PCB
     int IORequestTerm;
     int waitingTerm;
     int memoryNeeded;
-    int timeEnteredBlockedQ;
-    int eventTypeRequested;
+    int blockedTimeStamp;
+    int IORequestType;
+    int interactivity;
+    int reference;
+    int priority;
 };
 
 struct IOEvent
 {
     int eventType;
-    int timeCycleStamp;
+    int timeStamp;
 };
 
 enum IOEventType
@@ -46,16 +50,27 @@ enum IOEventType
     HARD_DRIVE = 9
 };
 
+enum PCBType
+{
+    INTERACTIVE = 1,
+    CPU_BOUND,
+    NORMAL
+};
+
 class PCBHandler
 {
 private:
     const int MAX_MEMORY = 500;
+    const int CONTEXT_SWITCH_COST = 10;
+    const int SPACE_PADDING = 10;
+    int highestPriority;
     deque<PCB> readyQ;
     deque<PCB> blockedQ;
     deque<IOEvent> IOEventQ;
     PCB CPU;
     
 public:
+    PCBHandler();
     int createPCB(int PID, int memoryNeeded);
     int deletePCB(int PID);
     int blockPCB(int PID);
@@ -65,12 +80,23 @@ public:
     void showReady();
     void showBlocked();
     void showQueue(deque<PCB> q, string qName);
+    void printPCBContent(PCB pcb);
+    void printPCBTableHeader();
     void generatePCBs(int amount);
-    void execute();
-    void writeQueue(deque<PCB> q, string qName, ofstream &trace);
+    void newExecute(bool roundRobin, int timeSlice);
+    void execute(bool MLFQ, int highestPriority, bool roundRobin,
+                 int timeSlice);
+    void executeAllPolicies(int timeSlice, int priorityLevels);
     void clearCPU();
-    void addEventToQ(int eventType, int timeCycleStamp);
+    void boostPriorityLevels();
+    void contextSwitch(bool MLFQ, int timeInCPU);
+    PCB findPCBWithHighestPriority();
     void updateAllWaitingTerms(int waitingTerm);
+    void addEventToQ(int eventType, int timeCycleStamp);
+    void detectIOEvents(int currTime);
+    bool scheduler(bool MLFQ, int totalTime);
+    void cleanIOEventQ();
+    void findIOEventForBlockedPCB(int totalTime);
     int find(int PID, deque<PCB> q);
 };
 
